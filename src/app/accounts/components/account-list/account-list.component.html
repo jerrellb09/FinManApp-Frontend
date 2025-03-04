@@ -1,0 +1,90 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Your Accounts</h1>
+    <div>
+      <button class="btn btn-outline-primary me-2" (click)="syncAll()" [disabled]="loading || accounts.length === 0">
+        <i class="bi bi-arrow-repeat me-1"></i> Sync All
+      </button>
+      <a routerLink="/accounts/add" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add Account
+      </a>
+    </div>
+  </div>
+  
+  <!-- Total Balance Card -->
+  <div class="card mb-4 balance-card">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <h5 class="text-muted mb-1">Total Balance</h5>
+          <h2 class="mb-0">${{totalBalance.toFixed(2)}}</h2>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <p class="text-muted mb-1">{{accounts.length}} active account{{accounts.length !== 1 ? 's' : ''}}</p>
+          <small class="text-muted">Last updated: {{getCurrentDate() | date:'medium'}}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading your accounts...</p>
+  </div>
+  
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-danger">
+    {{error}}
+  </div>
+  
+  <!-- No Accounts Message -->
+  <div *ngIf="!loading && accounts.length === 0 && !error" class="text-center my-5">
+    <div class="display-1 text-muted mb-4">
+      <i class="bi bi-bank"></i>
+    </div>
+    <h3 class="mb-3">No accounts found</h3>
+    <p class="mb-4">Add your first account to get started tracking your finances.</p>
+    <a routerLink="/accounts/add" class="btn btn-primary btn-lg">
+      <i class="bi bi-plus-lg me-1"></i> Add Your First Account
+    </a>
+  </div>
+  
+  <!-- Account List -->
+  <div *ngIf="!loading && accounts.length > 0">
+    <div class="row">
+      <div *ngFor="let account of accounts" class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{{account.name}}</h5>
+            <span class="badge" [ngClass]="{'bg-primary': account.type === 'CHECKING', 
+                                          'bg-success': account.type === 'SAVINGS',
+                                          'bg-danger': account.type === 'CREDIT_CARD',
+                                          'bg-info': account.type === 'INVESTMENT',
+                                          'bg-secondary': account.type === 'OTHER'}">
+              {{getAccountTypeLabel(account.type)}}
+            </span>
+          </div>
+          <div class="card-body">
+            <h3 class="mb-3">${{account.balance.toFixed(2)}}</h3>
+            <p class="text-muted mb-1">Account #: {{account.accountNumber || 'XXXX-' + account.id}}</p>
+            <p *ngIf="account.institution" class="text-muted">Institution: {{account.institution}}</p>
+          </div>
+          <div class="card-footer bg-transparent">
+            <div class="d-grid">
+              <button class="btn btn-outline-primary" 
+                      (click)="syncAccount(account.id)" 
+                      [disabled]="account.syncing">
+                <span *ngIf="account.syncing" class="spinner-border spinner-border-sm me-1"></span>
+                <i *ngIf="!account.syncing" class="bi bi-arrow-repeat me-1"></i>
+                {{account.syncing ? 'Syncing...' : 'Sync Account'}}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

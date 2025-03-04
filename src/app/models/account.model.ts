@@ -8,4 +8,10 @@ export interface Account {
   balance: number;
   currency: string;
   lastUpdated: Date;
+  
+  // Additional properties needed by components
+  accountType?: string;
+  accountNumber?: string;
+  institution?: string;
+  syncing?: boolean;
 }

@@ -1,0 +1,154 @@
+<div class="container mt-4">
+  <h1 class="mb-4">Transactions</h1>
+  
+  <!-- Filters -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Filters</h5>
+      
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label for="dateFrom" class="form-label">From Date</label>
+          <input type="date" class="form-control" id="dateFrom" [(ngModel)]="dateFrom">
+        </div>
+        
+        <div class="col-md-3">
+          <label for="dateTo" class="form-label">To Date</label>
+          <input type="date" class="form-control" id="dateTo" [(ngModel)]="dateTo">
+        </div>
+        
+        <div class="col-md-3">
+          <label for="minAmount" class="form-label">Min Amount</label>
+          <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input type="number" class="form-control" id="minAmount" [(ngModel)]="minAmount">
+          </div>
+        </div>
+        
+        <div class="col-md-3">
+          <label for="maxAmount" class="form-label">Max Amount</label>
+          <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input type="number" class="form-control" id="maxAmount" [(ngModel)]="maxAmount">
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <label for="search" class="form-label">Search</label>
+          <input type="text" class="form-control" id="search" placeholder="Search by description or merchant" [(ngModel)]="searchTerm">
+        </div>
+        
+        <div class="col-md-6">
+          <label for="categoryId" class="form-label">Category</label>
+          <select class="form-select" id="categoryId" [(ngModel)]="categoryId">
+            <option [ngValue]="null">All Categories</option>
+            <!-- In a real app, you would map the categories from your CategoryService -->
+            <option [value]="1">Category 1</option>
+            <option [value]="2">Category 2</option>
+            <option [value]="3">Category 3</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="d-flex justify-content-end mt-3">
+        <button class="btn btn-outline-secondary me-2" (click)="resetFilters()">Reset</button>
+        <button class="btn btn-primary" (click)="applyFilters()">Apply Filters</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading transactions...</p>
+  </div>
+  
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-danger">
+    {{error}}
+  </div>
+  
+  <!-- No Transactions -->
+  <div *ngIf="!loading && transactions.length === 0 && !error" class="text-center my-5">
+    <div class="display-1 text-muted mb-4">
+      <i class="bi bi-credit-card"></i>
+    </div>
+    <h3 class="mb-3">No transactions found</h3>
+    <p class="mb-4">Try adjusting your filters or add a new account to get started.</p>
+    <a routerLink="/accounts/add" class="btn btn-primary">Add Account</a>
+  </div>
+  
+  <!-- Transaction List -->
+  <div *ngIf="!loading && transactions.length > 0">
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Description</th>
+                <th scope="col">Category</th>
+                <th scope="col">Account</th>
+                <th scope="col" class="text-end">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let transaction of transactions">
+                <td>{{formatDate(transaction.date)}}</td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <i class="bi me-2" [ngClass]="getTransactionIcon(transaction)"></i>
+                    <div>
+                      <div>{{transaction.description}}</div>
+                      <small *ngIf="transaction.merchant" class="text-muted">{{transaction.merchant}}</small>
+                    </div>
+                  </div>
+                </td>
+                <td>{{getCategoryName(transaction.categoryId)}}</td>
+                <td>{{transaction.accountName}}</td>
+                <td [ngClass]="{'text-danger': transaction.amount < 0, 'text-success': transaction.amount > 0}" class="text-end">
+                  {{transaction.amount < 0 ? '-' : '+'}}${{Math.abs(transaction.amount).toFixed(2)}}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="d-flex justify-content-center mt-4">
+      <nav aria-label="Transaction pagination">
+        <ul class="pagination">
+          <li class="page-item" [ngClass]="{'disabled': currentPage === 0}">
+            <a class="page-link" href="javascript:void(0)" (click)="onPageChange(0)">First</a>
+          </li>
+          <li class="page-item" [ngClass]="{'disabled': currentPage === 0}">
+            <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage - 1)">Previous</a>
+          </li>
+          
+          <!-- Page Numbers - show up to 5 pages centered around the current page -->
+          <ng-container *ngFor="let page of [].constructor(totalPages); let i = index">
+            <li *ngIf="i === 0 || i === totalPages - 1 || (i >= currentPage - 2 && i <= currentPage + 2)" 
+                class="page-item" [ngClass]="{'active': currentPage === i}">
+              <a class="page-link" href="javascript:void(0)" (click)="onPageChange(i)">{{i + 1}}</a>
+            </li>
+            <li *ngIf="i === currentPage - 3 || i === currentPage + 3" class="page-item disabled">
+              <span class="page-link">...</span>
+            </li>
+          </ng-container>
+          
+          <li class="page-item" [ngClass]="{'disabled': currentPage === totalPages - 1}">
+            <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage + 1)">Next</a>
+          </li>
+          <li class="page-item" [ngClass]="{'disabled': currentPage === totalPages - 1}">
+            <a class="page-link" href="javascript:void(0)" (click)="onPageChange(totalPages - 1)">Last</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>

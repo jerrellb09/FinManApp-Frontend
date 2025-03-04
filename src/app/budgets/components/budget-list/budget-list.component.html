@@ -1,0 +1,90 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Your Budgets</h1>
+    <a routerLink="/budgets/add" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i> Create Budget
+    </a>
+  </div>
+  
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading your budgets...</p>
+  </div>
+  
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-danger">
+    {{error}}
+  </div>
+  
+  <!-- No Budgets Message -->
+  <div *ngIf="!loading && budgets.length === 0 && !error" class="text-center my-5">
+    <div class="display-1 text-muted mb-4">
+      <i class="bi bi-wallet2"></i>
+    </div>
+    <h3 class="mb-3">No budgets found</h3>
+    <p class="mb-4">Create your first budget to start tracking your spending goals.</p>
+    <a routerLink="/budgets/add" class="btn btn-primary btn-lg">
+      <i class="bi bi-plus-lg me-1"></i> Create Your First Budget
+    </a>
+  </div>
+  
+  <!-- Budget List -->
+  <div *ngIf="!loading && budgets.length > 0">
+    <div class="row">
+      <div *ngFor="let budget of budgets" class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100" [ngClass]="{'border-primary': isActive(budget)}">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{{budget.name}}</h5>
+            <span *ngIf="isActive(budget)" class="badge bg-primary">Active</span>
+          </div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+              <span>Budget Amount:</span>
+              <span>${{budget.amount.toFixed(2)}}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span>Current Spending:</span>
+              <span>${{(budget.currentSpending || 0).toFixed(2)}}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+              <span>Remaining:</span>
+              <span [ngClass]="{'text-danger': getBudgetProgress(budget) > 100, 'text-success': getBudgetProgress(budget) <= 100}">
+                ${{getRemainingAmount(budget).toFixed(2)}}
+              </span>
+            </div>
+            
+            <div class="mb-3">
+              <div class="progress" style="height: 10px;">
+                <div class="progress-bar" 
+                     [ngClass]="getProgressBarClass(getBudgetProgress(budget))"
+                     [style.width.%]="getBudgetProgress(budget) > 100 ? 100 : getBudgetProgress(budget)">
+                </div>
+              </div>
+              <div class="d-flex justify-content-between mt-1">
+                <small class="text-muted">0%</small>
+                <small class="text-muted">{{getBudgetProgress(budget).toFixed(0)}}%</small>
+                <small class="text-muted">100%</small>
+              </div>
+            </div>
+            
+            <p class="text-muted mb-1">Category: {{budget.categoryName}}</p>
+            <p class="text-muted">Period: {{getDateRangeLabel(budget)}}</p>
+            
+            <p *ngIf="budget.description" class="mt-3">{{budget.description}}</p>
+          </div>
+          <div class="card-footer bg-transparent d-flex justify-content-between">
+            <a [routerLink]="['/budgets/edit', budget.id]" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-pencil me-1"></i> Edit
+            </a>
+            <button class="btn btn-sm btn-outline-danger" (click)="deleteBudget(budget.id)">
+              <i class="bi bi-trash me-1"></i> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

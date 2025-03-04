@@ -8,4 +8,9 @@ export interface Budget {
   startDate: Date;
   endDate: Date | null;
   warningThreshold: number;
+  
+  // Additional properties needed by components
+  currentSpending?: number;
+  categoryName?: string;
+  description?: string;
 }

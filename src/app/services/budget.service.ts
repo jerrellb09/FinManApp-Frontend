@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Budget } from '../models/budget.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BudgetService {
-  private apiUrl = 'http://localhost:8080/api/budgets';
+  private apiUrl = `${environment.apiUrl}/api/budgets`;
   
   constructor(private http: HttpClient) { }
   
@@ -37,5 +38,13 @@ export class BudgetService {
   
   getBudgetSpending(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}/spending`);
+  }
+  
+  getBudgetCategories(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/categories`);
+  }
+  
+  getBudgetTransactions(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${id}/transactions`);
   }
 }

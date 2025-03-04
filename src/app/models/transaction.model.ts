@@ -9,4 +9,8 @@ export interface Transaction {
   pending: boolean;
   categoryId: number;
   description: string;
+  
+  // Additional properties needed by components
+  merchant?: string;
+  accountName?: string;
 }

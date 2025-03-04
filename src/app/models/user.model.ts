@@ -1,6 +1,7 @@
 export interface User {
-  id: number;
+  id: string | number;
   email: string;
   firstName: string;
   lastName: string;
+  [key: string]: any;
 }
