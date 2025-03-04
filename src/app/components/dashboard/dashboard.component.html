@@ -1,0 +1,116 @@
+<div class="container mt-4">
+  <h1>Dashboard</h1>
+  
+  <!-- Loading Spinner -->
+  <div *ngIf="loading.accounts || loading.transactions || loading.budgets || loading.insights" class="text-center my-4">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  
+  <!-- Accounts Overview -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h5>Accounts Overview</h5>
+        </div>
+        <div class="card-body">
+          <div *ngIf="error.accounts" class="alert alert-danger">{{error.accounts}}</div>
+          <div *ngIf="accounts.length === 0 && !loading.accounts" class="alert alert-info">No accounts found. Add your first account to get started.</div>
+          
+          <div *ngIf="accounts.length > 0" class="row">
+            <div class="col-md-6">
+              <h6>Total Balance</h6>
+              <h3>${{totalBalance.toFixed(2)}}</h3>
+            </div>
+            <div class="col-md-6">
+              <div *ngFor="let account of accounts" class="d-flex justify-content-between border-bottom py-2">
+                <span>{{account.name}}</span>
+                <span>${{account.balance.toFixed(2)}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Recent Transactions and Budgets -->
+  <div class="row mb-4">
+    <!-- Recent Transactions -->
+    <div class="col-md-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5>Recent Transactions</h5>
+        </div>
+        <div class="card-body">
+          <div *ngIf="error.transactions" class="alert alert-danger">{{error.transactions}}</div>
+          <div *ngIf="recentTransactions.length === 0 && !loading.transactions" class="alert alert-info">No recent transactions found.</div>
+          
+          <div *ngFor="let transaction of recentTransactions" class="d-flex justify-content-between border-bottom py-2">
+            <div>
+              <div>{{transaction.description}}</div>
+              <small class="text-muted">{{transaction.date}}</small>
+            </div>
+            <span [class.text-danger]="transaction.amount < 0" [class.text-success]="transaction.amount > 0">
+              {{transaction.amount > 0 ? '+' : ''}}${{transaction.amount.toFixed(2)}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Active Budgets -->
+    <div class="col-md-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5>Active Budgets</h5>
+        </div>
+        <div class="card-body">
+          <div *ngIf="error.budgets" class="alert alert-danger">{{error.budgets}}</div>
+          <div *ngIf="activeBudgets.length === 0 && !loading.budgets" class="alert alert-info">No active budgets found.</div>
+          
+          <div *ngFor="let budget of activeBudgets" class="mb-3">
+            <div class="d-flex justify-content-between">
+              <span>{{budget.name}}</span>
+              <span>${{(budget.spending?.currentSpending || 0).toFixed(2)}} / ${{budget.amount.toFixed(2)}}</span>
+            </div>
+            <div class="progress">
+              <div class="progress-bar" 
+                   [class]="getProgressBarClass(getBudgetProgress(budget))"
+                   [style.width.%]="getBudgetProgress(budget)">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Spending by Category -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h5>Monthly Spending by Category</h5>
+        </div>
+        <div class="card-body">
+          <div *ngIf="error.insights" class="alert alert-danger">{{error.insights}}</div>
+          <div *ngIf="spendingByCategory.length === 0 && !loading.insights" class="alert alert-info">No spending data available for this month.</div>
+          
+          <div *ngIf="spendingByCategory.length > 0" class="row">
+            <div *ngFor="let category of spendingByCategory" class="col-md-4 mb-3">
+              <div class="card">
+                <div class="card-body">
+                  <h6>{{category.name}}</h6>
+                  <h4>${{category.amount.toFixed(2)}}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

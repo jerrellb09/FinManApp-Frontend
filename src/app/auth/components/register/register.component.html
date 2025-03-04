@@ -1,0 +1,107 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-sm mt-5">
+        <div class="card-body p-4">
+          <h2 class="text-center mb-4">Create an Account</h2>
+          
+          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+            <div class="alert alert-danger" *ngIf="error">{{error}}</div>
+            
+            <div class="row mb-3">
+              <div class="col">
+                <label for="firstName" class="form-label">First Name</label>
+                <input
+                  type="text"
+                  formControlName="firstName"
+                  class="form-control"
+                  [ngClass]="{ 'is-invalid': registerForm.controls['firstName'].touched && registerForm.controls['firstName'].invalid }"
+                  id="firstName"
+                />
+                <div *ngIf="registerForm.controls['firstName'].touched && registerForm.controls['firstName'].invalid" class="invalid-feedback">
+                  <div *ngIf="registerForm.controls['firstName'].errors?.['required']">First name is required</div>
+                </div>
+              </div>
+              
+              <div class="col">
+                <label for="lastName" class="form-label">Last Name</label>
+                <input
+                  type="text"
+                  formControlName="lastName"
+                  class="form-control"
+                  [ngClass]="{ 'is-invalid': registerForm.controls['lastName'].touched && registerForm.controls['lastName'].invalid }"
+                  id="lastName"
+                />
+                <div *ngIf="registerForm.controls['lastName'].touched && registerForm.controls['lastName'].invalid" class="invalid-feedback">
+                  <div *ngIf="registerForm.controls['lastName'].errors?.['required']">Last name is required</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input
+                type="email"
+                formControlName="email"
+                class="form-control"
+                [ngClass]="{ 'is-invalid': registerForm.controls['email'].touched && registerForm.controls['email'].invalid }"
+                id="email"
+              />
+              <div *ngIf="registerForm.controls['email'].touched && registerForm.controls['email'].invalid" class="invalid-feedback">
+                <div *ngIf="registerForm.controls['email'].errors?.['required']">Email is required</div>
+                <div *ngIf="registerForm.controls['email'].errors?.['email']">Email must be a valid email address</div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input
+                type="password"
+                formControlName="password"
+                class="form-control"
+                [ngClass]="{ 'is-invalid': registerForm.controls['password'].touched && registerForm.controls['password'].invalid }"
+                id="password"
+              />
+              <div *ngIf="registerForm.controls['password'].touched && registerForm.controls['password'].invalid" class="invalid-feedback">
+                <div *ngIf="registerForm.controls['password'].errors?.['required']">Password is required</div>
+                <div *ngIf="registerForm.controls['password'].errors?.['minlength']">
+                  Password must be at least 8 characters
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <label for="confirmPassword" class="form-label">Confirm Password</label>
+              <input
+                type="password"
+                formControlName="confirmPassword"
+                class="form-control"
+                [ngClass]="{ 'is-invalid': registerForm.controls['confirmPassword'].touched && registerForm.controls['confirmPassword'].invalid }"
+                id="confirmPassword"
+              />
+              <div *ngIf="registerForm.controls['confirmPassword'].touched && registerForm.controls['confirmPassword'].invalid" class="invalid-feedback">
+                <div *ngIf="registerForm.controls['confirmPassword'].errors?.['required']">
+                  Confirm Password is required
+                </div>
+                <div *ngIf="registerForm.controls['confirmPassword'].errors?.['mustMatch']">
+                  Passwords must match
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary" [disabled]="registerForm.invalid || loading">
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-1"></span>
+                Register
+              </button>
+            </div>
+          </form>
+          
+          <div class="text-center mt-3">
+            <p>Already have an account? <a routerLink="/auth/login">Sign in</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

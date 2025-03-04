@@ -1,0 +1,59 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm mt-5">
+        <div class="card-body p-4">
+          <h2 class="text-center mb-4">Sign In</h2>
+          
+          <div class="alert alert-success" *ngIf="route.snapshot.queryParams['registered']">
+            Registration successful! Please log in with your new account.
+          </div>
+          
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <div class="alert alert-danger" *ngIf="error">{{error}}</div>
+            
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input
+                type="email"
+                formControlName="email"
+                class="form-control"
+                [ngClass]="{ 'is-invalid': loginForm.controls['email'].touched && loginForm.controls['email'].invalid }"
+                id="email"
+              />
+              <div *ngIf="loginForm.controls['email'].touched && loginForm.controls['email'].invalid" class="invalid-feedback">
+                <div *ngIf="loginForm.controls['email'].errors?.['required']">Email is required</div>
+                <div *ngIf="loginForm.controls['email'].errors?.['email']">Email must be a valid email address</div>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <label for="password" class="form-label">Password</label>
+              <input
+                type="password"
+                formControlName="password"
+                class="form-control"
+                [ngClass]="{ 'is-invalid': loginForm.controls['password'].touched && loginForm.controls['password'].invalid }"
+                id="password"
+              />
+              <div *ngIf="loginForm.controls['password'].touched && loginForm.controls['password'].invalid" class="invalid-feedback">
+                <div *ngIf="loginForm.controls['password'].errors?.['required']">Password is required</div>
+              </div>
+            </div>
+            
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary" [disabled]="loginForm.invalid || loading">
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-1"></span>
+                Sign In
+              </button>
+            </div>
+          </form>
+          
+          <div class="text-center mt-3">
+            <p>Don't have an account? <a routerLink="/auth/register">Sign up</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
