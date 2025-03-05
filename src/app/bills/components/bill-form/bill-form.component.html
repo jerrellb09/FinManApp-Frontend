@@ -1,0 +1,137 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h2 class="text-center mb-4">{{ isEditMode ? 'Edit Bill' : 'Add New Bill' }}</h2>
+          
+          <!-- Loading Spinner -->
+          <div *ngIf="loading" class="text-center my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading...</p>
+          </div>
+          
+          <!-- Success and Error messages -->
+          <div class="alert alert-success" *ngIf="success">{{ success }}</div>
+          <div *ngIf="error" class="alert alert-warning">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+              <div>
+                <strong>{{error}}</strong>
+                <p class="mb-0 mt-1" *ngIf="error.includes('API')">The bill management backend service may need to be started or implemented.</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Bill Form -->
+          <form *ngIf="!loading" [formGroup]="billForm" (ngSubmit)="onSubmit()">
+            <div class="mb-3">
+              <label for="name" class="form-label">Bill Name</label>
+              <input
+                type="text"
+                formControlName="name"
+                class="form-control"
+                [ngClass]="{ 'is-invalid': billForm.controls['name'].touched && billForm.controls['name'].invalid }"
+                id="name"
+                placeholder="e.g. Electricity Bill"
+              />
+              <div *ngIf="billForm.controls['name'].touched && billForm.controls['name'].invalid" class="invalid-feedback">
+                <div *ngIf="billForm.controls['name'].errors?.['required']">Bill name is required</div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="amount" class="form-label">Amount</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  formControlName="amount"
+                  class="form-control"
+                  [ngClass]="{ 'is-invalid': billForm.controls['amount'].touched && billForm.controls['amount'].invalid }"
+                  id="amount"
+                  placeholder="0.00"
+                />
+                <div *ngIf="billForm.controls['amount'].touched && billForm.controls['amount'].invalid" class="invalid-feedback">
+                  <div *ngIf="billForm.controls['amount'].errors?.['required']">Amount is required</div>
+                  <div *ngIf="billForm.controls['amount'].errors?.['min']">Amount must be greater than zero</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="dueDay" class="form-label">Due Day of Month</label>
+              <input
+                type="number"
+                formControlName="dueDay"
+                class="form-control"
+                [ngClass]="{ 'is-invalid': billForm.controls['dueDay'].touched && billForm.controls['dueDay'].invalid }"
+                id="dueDay"
+                min="1"
+                max="31"
+                placeholder="e.g. 15 for the 15th of each month"
+              />
+              <div *ngIf="billForm.controls['dueDay'].touched && billForm.controls['dueDay'].invalid" class="invalid-feedback">
+                <div *ngIf="billForm.controls['dueDay'].errors?.['required']">Due day is required</div>
+                <div *ngIf="billForm.controls['dueDay'].errors?.['min'] || billForm.controls['dueDay'].errors?.['max']">
+                  Due day must be between 1 and 31
+                </div>
+              </div>
+              <small class="form-text text-muted">Enter the day of the month when this bill is due (1-31)</small>
+            </div>
+            
+            <div class="mb-3">
+              <label for="categoryId" class="form-label">Category (Optional)</label>
+              <select
+                formControlName="categoryId"
+                class="form-select"
+                id="categoryId"
+              >
+                <option [ngValue]="null">-- Select a category --</option>
+                <option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option>
+              </select>
+              <small class="form-text text-muted">Categorize your bill for better expense tracking</small>
+            </div>
+            
+            <div class="form-check mb-3">
+              <input
+                type="checkbox"
+                formControlName="isRecurring"
+                class="form-check-input"
+                id="isRecurring"
+              />
+              <label class="form-check-label" for="isRecurring">
+                Recurring Monthly Bill
+              </label>
+              <small class="form-text text-muted d-block">Check this if the bill repeats every month</small>
+            </div>
+            
+            <div class="form-check mb-4" *ngIf="isEditMode">
+              <input
+                type="checkbox"
+                formControlName="isPaid"
+                class="form-check-input"
+                id="isPaid"
+              />
+              <label class="form-check-label" for="isPaid">
+                Paid
+              </label>
+              <small class="form-text text-muted d-block">Check this if the bill has been paid for the current period</small>
+            </div>
+            
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary" [disabled]="billForm.invalid || submitting">
+                <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>
+                {{ isEditMode ? 'Update Bill' : 'Add Bill' }}
+              </button>
+              <a routerLink="/bills" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

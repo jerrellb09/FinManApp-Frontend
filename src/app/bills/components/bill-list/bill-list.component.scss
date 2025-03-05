@@ -1,0 +1,28 @@
+/* Bill List Component Styles */
+.table-responsive {
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.table th {
+  font-weight: 600;
+  border-top: none;
+}
+
+.badge {
+  font-weight: 500;
+}
+
+.btn-group .btn {
+  padding: 0.25rem 0.5rem;
+}
+
+/* Status colors */
+.table-warning {
+  --bs-table-bg: rgba(255, 193, 7, 0.15);
+}
+
+.table-success {
+  --bs-table-bg: rgba(25, 135, 84, 0.15);
+}

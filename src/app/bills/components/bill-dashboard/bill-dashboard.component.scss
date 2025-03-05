@@ -1,0 +1,69 @@
+/* Bill Dashboard Component Styles */
+.card {
+  border-radius: 0.75rem;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.card-header {
+  border-top-left-radius: 0.75rem !important;
+  border-top-right-radius: 0.75rem !important;
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+}
+
+.progress {
+  height: 15px;
+  border-radius: 10px;
+  background-color: #f2f2f2;
+  
+  .progress-bar {
+    border-radius: 10px;
+    transition: width 0.5s ease;
+  }
+}
+
+.list-group-item {
+  border-left: none;
+  border-right: none;
+  
+  &:first-child {
+    border-top: none;
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.due-bills-list, .overdue-bills-list {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+/* Stats Cards */
+.bg-primary {
+  background: linear-gradient(135deg, #4e73df 0%, #3a54c4 100%) !important;
+}
+
+.bg-success {
+  background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%) !important;
+}
+
+.bg-warning {
+  background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%) !important;
+}
+
+.bg-danger {
+  background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%) !important;
+}
+
+.bg-info {
+  background: linear-gradient(135deg, #36b9cc 0%, #258391 100%) !important;
+}

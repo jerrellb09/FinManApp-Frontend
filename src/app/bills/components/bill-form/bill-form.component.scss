@@ -1,0 +1,32 @@
+/* Bill Form Component Styles */
+.card {
+  border-radius: 0.75rem;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.form-control, .form-select {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.form-check-label {
+  font-weight: 500;
+}
+
+.form-text {
+  margin-top: 0.25rem;
+  opacity: 0.8;
+}
+
+/* Button styles */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+}

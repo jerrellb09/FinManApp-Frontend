@@ -1,0 +1,110 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Your Bills</h1>
+    <div>
+      <button class="btn btn-outline-primary me-2" (click)="resetMonthlyBills()" [disabled]="loading || bills.length === 0">
+        <i class="bi bi-arrow-clockwise me-1"></i> Reset Monthly Bills
+      </button>
+      <button class="btn btn-outline-secondary me-2" (click)="togglePaidBills()">
+        <i class="bi" [ngClass]="showPaid ? 'bi-eye-slash' : 'bi-eye'"></i> 
+        {{ showPaid ? 'Hide Paid Bills' : 'Show Paid Bills' }}
+      </button>
+      <a routerLink="/bills/add" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add Bill
+      </a>
+    </div>
+  </div>
+  
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading your bills...</p>
+  </div>
+  
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-warning">
+    <div class="d-flex align-items-center">
+      <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+      <div>
+        <strong>{{error}}</strong>
+        <p class="mb-0 mt-1" *ngIf="error.includes('API')">The bill management backend service may need to be started or implemented.</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- No Bills Message -->
+  <div *ngIf="!loading && bills.length === 0 && !error" class="text-center my-5">
+    <div class="display-1 text-muted mb-4">
+      <i class="bi bi-receipt"></i>
+    </div>
+    <h3 class="mb-3">No bills found</h3>
+    <p class="mb-4">Add your first bill to start tracking your monthly expenses.</p>
+    <a routerLink="/bills/add" class="btn btn-primary btn-lg">
+      <i class="bi bi-plus-lg me-1"></i> Add Your First Bill
+    </a>
+  </div>
+  
+  <!-- Bills List -->
+  <div *ngIf="!loading && bills.length > 0">
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th>Amount</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Recurring</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let bill of bills" [ngClass]="{'table-warning': isDueSoon(bill) && !bill.isPaid, 'table-success': bill.isPaid}">
+            <td>{{bill.name}}</td>
+            <td>${{formatCurrency(bill.amount)}}</td>
+            <td>
+              Day {{bill.dueDay}} of each month
+              <span *ngIf="!bill.isPaid && getDaysUntilDue(bill.dueDay) <= 5" class="badge bg-danger ms-2">
+                Due in {{getDaysUntilDue(bill.dueDay)}} days
+              </span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="bill.isPaid ? 'bg-success' : 'bg-danger'">
+                {{ bill.isPaid ? 'Paid' : 'Unpaid' }}
+              </span>
+            </td>
+            <td>
+              <i class="bi" [ngClass]="bill.isRecurring ? 'bi-arrow-repeat text-primary' : 'bi-x-circle text-secondary'"></i>
+              {{ bill.isRecurring ? 'Monthly' : 'One-time' }}
+            </td>
+            <td>
+              <div class="btn-group">
+                <button 
+                  *ngIf="!bill.isPaid" 
+                  class="btn btn-sm btn-success me-1" 
+                  (click)="markAsPaid(bill.id)"
+                  title="Mark as Paid">
+                  <i class="bi bi-check-circle"></i>
+                </button>
+                <a 
+                  [routerLink]="['/bills/edit', bill.id]" 
+                  class="btn btn-sm btn-primary me-1"
+                  title="Edit Bill">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <button 
+                  class="btn btn-sm btn-danger" 
+                  (click)="deleteBill(bill.id)"
+                  title="Delete Bill">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

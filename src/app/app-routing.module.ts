@@ -28,6 +28,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'bills',
+    loadChildren: () => import('./bills/bills.module').then(m => m.BillsModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'insights',
     loadChildren: () => import('./insights/insights.module').then(m => m.InsightsModule),
     canActivate: [AuthGuard]

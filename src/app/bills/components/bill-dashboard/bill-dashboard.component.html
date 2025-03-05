@@ -1,0 +1,193 @@
+<div class="container mt-4">
+  <h1 class="mb-4">Bill Management Dashboard</h1>
+  
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading your bill dashboard...</p>
+  </div>
+  
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-warning">
+    <div class="d-flex align-items-center">
+      <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+      <div>
+        <strong>{{error}}</strong>
+        <p class="mb-0 mt-1" *ngIf="error.includes('API')">The bill management backend service may need to be started or implemented.</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- No Bills Message -->
+  <div *ngIf="!loading && bills.length === 0 && !error" class="text-center my-5">
+    <div class="display-1 text-muted mb-4">
+      <i class="bi bi-receipt"></i>
+    </div>
+    <h3 class="mb-3">No bills found</h3>
+    <p class="mb-4">Start tracking your monthly bills to better manage your finances.</p>
+    <a routerLink="/bills/add" class="btn btn-primary btn-lg">
+      <i class="bi bi-plus-lg me-1"></i> Add Your First Bill
+    </a>
+  </div>
+  
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading && bills.length > 0" class="dashboard-content">
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3">
+        <div class="card h-100 bg-primary text-white">
+          <div class="card-body">
+            <h5 class="card-title">Total Bills</h5>
+            <h2 class="card-text mb-0">{{bills.length}}</h2>
+            <div class="mt-2 small">
+              {{paidBills.length}} paid, {{unpaidBills.length}} unpaid
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3 mb-3">
+        <div class="card h-100 bg-success text-white">
+          <div class="card-body">
+            <h5 class="card-title">Total Amount</h5>
+            <h2 class="card-text mb-0">${{formatCurrency(totalBillAmount)}}</h2>
+            <div class="mt-2 small">
+              Monthly recurring expenses
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3 mb-3">
+        <div class="card h-100" [ngClass]="{'bg-warning text-dark': dueBills.length > 0, 'bg-info text-white': dueBills.length === 0}">
+          <div class="card-body">
+            <h5 class="card-title">Due Soon</h5>
+            <h2 class="card-text mb-0">{{dueBills.length}}</h2>
+            <div class="mt-2 small">
+              <span *ngIf="dueBills.length > 0">${{formatCurrency(totalDueAmount)}} to pay</span>
+              <span *ngIf="dueBills.length === 0">No bills due right now</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3 mb-3">
+        <div class="card h-100" [ngClass]="{'bg-danger text-white': remainingIncome < 0, 'bg-light': remainingIncome >= 0}">
+          <div class="card-body">
+            <h5 class="card-title">Remaining Income</h5>
+            <h2 class="card-text mb-0">${{formatCurrency(remainingIncome)}}</h2>
+            <div class="mt-2 small">
+              After paying all bills
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Progress -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="card-title mb-0">Monthly Progress</h5>
+              <div class="text-muted">{{paidBills.length}} / {{bills.length}} bills paid</div>
+            </div>
+            <div class="progress" style="height: 20px;">
+              <div 
+                class="progress-bar" 
+                [ngClass]="{
+                  'bg-danger': getBillsCompletionRate() < 30,
+                  'bg-warning': getBillsCompletionRate() >= 30 && getBillsCompletionRate() < 70,
+                  'bg-success': getBillsCompletionRate() >= 70
+                }"
+                role="progressbar" 
+                [style.width.%]="getBillsCompletionRate()" 
+                aria-valuenow="getBillsCompletionRate()" 
+                aria-valuemin="0" 
+                aria-valuemax="100">
+                {{getBillsCompletionRate() | number:'1.0-0'}}%
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Due This Week -->
+    <div class="row mb-4">
+      <div class="col-md-6 mb-3">
+        <div class="card h-100">
+          <div class="card-header bg-warning bg-opacity-25">
+            <h5 class="mb-0">Due This Week</h5>
+          </div>
+          <div class="card-body">
+            <div *ngIf="getBillsDueThisWeek().length === 0" class="text-center py-3 text-muted">
+              <i class="bi bi-check-circle-fill fs-4 mb-2"></i>
+              <p class="mb-0">No bills due this week</p>
+            </div>
+            <ul *ngIf="getBillsDueThisWeek().length > 0" class="list-group due-bills-list">
+              <li *ngFor="let bill of getBillsDueThisWeek()" class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="mb-0">{{bill.name}}</h6>
+                  <small class="text-muted">Due on the {{bill.dueDay}}th (in {{getDaysUntilDue(bill.dueDay)}} days)</small>
+                </div>
+                <div>
+                  <span class="badge bg-warning text-dark me-2">${{formatCurrency(bill.amount)}}</span>
+                  <button class="btn btn-sm btn-success" (click)="markAsPaid(bill.id)">
+                    <i class="bi bi-check-circle"></i> Pay
+                  </button>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Overdue Bills -->
+      <div class="col-md-6 mb-3">
+        <div class="card h-100">
+          <div class="card-header bg-danger bg-opacity-25">
+            <h5 class="mb-0">Overdue Bills</h5>
+          </div>
+          <div class="card-body">
+            <div *ngIf="getOverdueBills().length === 0" class="text-center py-3 text-muted">
+              <i class="bi bi-check-circle-fill fs-4 mb-2"></i>
+              <p class="mb-0">No overdue bills</p>
+            </div>
+            <ul *ngIf="getOverdueBills().length > 0" class="list-group overdue-bills-list">
+              <li *ngFor="let bill of getOverdueBills()" class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="mb-0">{{bill.name}}</h6>
+                  <small class="text-danger">Overdue! Due on the {{bill.dueDay}}th</small>
+                </div>
+                <div>
+                  <span class="badge bg-danger me-2">${{formatCurrency(bill.amount)}}</span>
+                  <button class="btn btn-sm btn-success" (click)="markAsPaid(bill.id)">
+                    <i class="bi bi-check-circle"></i> Pay
+                  </button>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="d-flex justify-content-between">
+          <a routerLink="/bills/list" class="btn btn-outline-primary me-2">
+            <i class="bi bi-list-ul me-1"></i> View All Bills
+          </a>
+          <a routerLink="/bills/add" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Add New Bill
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
