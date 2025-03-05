@@ -52,6 +52,17 @@
           <div class="text-center mt-3">
             <p>Don't have an account? <a routerLink="/auth/register">Sign up</a></p>
           </div>
+          
+          <!-- Debug info panel - only shown when ?debug=true is in URL -->
+          <div *ngIf="debug" class="mt-4 p-3 border border-warning rounded bg-light">
+            <h6 class="text-warning">Debug Information</h6>
+            <small class="d-block mb-2">This information is for troubleshooting only.</small>
+            <div class="small">
+              <div>Token exists: {{ hasToken() }}</div>
+              <div>User data exists: {{ hasUserData() }}</div>
+              <div>Is authenticated: {{ isAuthenticated() }}</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

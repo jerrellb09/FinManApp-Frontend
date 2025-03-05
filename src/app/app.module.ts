@@ -10,7 +10,7 @@ import { AppComponent } from './app.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 
 // Services
-import { AuthService } from './auth/services/auth.service';
+import { AuthService } from './services/auth.service';
 import { AccountService } from './services/account.service';
 import { TransactionService } from './services/transaction.service';
 import { BudgetService } from './services/budget.service';

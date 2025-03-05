@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from './auth/services/auth.service';
+import { AuthService } from './services/auth.service';
 import { User } from './models/user.model';
 
 @Component({
@@ -19,7 +19,8 @@ export class AppComponent implements OnInit {
   ) {}
   
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser.subscribe(user => {
+      console.log('App component received user update:', user);
       this.currentUser = user;
       this.isLoggedIn = !!user;
       
@@ -32,6 +33,15 @@ export class AppComponent implements OnInit {
     
     // Check if user is already logged in
     this.isLoggedIn = this.authService.isAuthenticated();
+    
+    // If token exists but no user info, try to get user info
+    if (this.isLoggedIn && !this.currentUser) {
+      console.log('App component: Token exists but no user info, refreshing user info');
+      this.authService.refreshUserInfo().subscribe({
+        next: user => console.log('Successfully refreshed user info in app component'),
+        error: err => console.error('Failed to refresh user info in app component:', err)
+      });
+    }
   }
   
   logout(event: Event): void {

@@ -180,12 +180,172 @@
     <div class="row mb-4">
       <div class="col-12">
         <div class="d-flex justify-content-between">
-          <a routerLink="/bills/list" class="btn btn-outline-primary me-2">
-            <i class="bi bi-list-ul me-1"></i> View All Bills
-          </a>
+          <div>
+            <a routerLink="/bills/list" class="btn btn-outline-primary me-2">
+              <i class="bi bi-list-ul me-1"></i> View All Bills
+            </a>
+            <button (click)="resetMonthlyBills()" class="btn btn-outline-warning me-2" [disabled]="loading">
+              <i class="bi bi-arrow-repeat me-1"></i> Reset Monthly Bills
+            </button>
+          </div>
           <a routerLink="/bills/add" class="btn btn-primary">
             <i class="bi bi-plus-lg me-1"></i> Add New Bill
           </a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Bill Management Table -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Manage Your Bills</h5>
+            <div class="input-group w-auto">
+              <select class="form-select" [(ngModel)]="selectedCategoryFilter" (change)="applyFilters()">
+                <option value="">All Categories</option>
+                <option value="utilities">Utilities</option>
+                <option value="rent">Rent/Mortgage</option>
+                <option value="insurance">Insurance</option>
+                <option value="subscription">Subscriptions</option>
+                <option value="other">Other</option>
+              </select>
+              <button class="btn btn-outline-secondary" type="button" (click)="clearFilters()">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Amount</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Category</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="filteredBills.length === 0 && !loading">
+                  <td colspan="6" class="text-center py-3">
+                    <span *ngIf="selectedCategoryFilter">No bills found in this category.</span>
+                    <span *ngIf="!selectedCategoryFilter">No bills found. Add your first bill to get started.</span>
+                  </td>
+                </tr>
+                <tr *ngFor="let bill of filteredBills">
+                  <td>{{bill.name}}</td>
+                  <td>${{formatCurrency(bill.amount)}}</td>
+                  <td>
+                    <span [ngClass]="{'text-danger': isDue(bill), 'text-warning': isUpcoming(bill)}">
+                      {{bill.dueDay}}<sup>th</sup> of month
+                      <small *ngIf="isDue(bill)" class="d-block text-danger">Due now!</small>
+                      <small *ngIf="isUpcoming(bill)" class="d-block text-warning">Due in {{getDaysUntilDue(bill.dueDay)}} days</small>
+                    </span>
+                  </td>
+                  <td>
+                    <span *ngIf="bill.isPaid" class="badge bg-success">Paid</span>
+                    <span *ngIf="!bill.isPaid" class="badge bg-secondary">Unpaid</span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="getCategoryBadgeClass(bill.categoryId)">
+                      {{getCategoryName(bill.categoryId)}}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <button *ngIf="!bill.isPaid" (click)="markAsPaid(bill.id)" class="btn btn-success" title="Mark as Paid">
+                        <i class="bi bi-check-circle"></i>
+                      </button>
+                      <button *ngIf="bill.isPaid" (click)="markAsUnpaid(bill.id)" class="btn btn-secondary" title="Mark as Unpaid">
+                        <i class="bi bi-x-circle"></i>
+                      </button>
+                      <button (click)="editBill(bill)" class="btn btn-primary" title="Edit Bill">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button (click)="confirmDeleteBill(bill)" class="btn btn-danger" title="Delete Bill">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Bill Edit Modal -->
+    <div class="modal fade" id="editBillModal" tabindex="-1" aria-labelledby="editBillModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content" *ngIf="selectedBill">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editBillModalLabel">Edit Bill</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="mb-3">
+                <label for="billName" class="form-label">Bill Name</label>
+                <input type="text" class="form-control" id="billName" [(ngModel)]="selectedBill.name" name="name">
+              </div>
+              <div class="mb-3">
+                <label for="billAmount" class="form-label">Amount</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" id="billAmount" [(ngModel)]="selectedBill.amount" name="amount" step="0.01">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="billDueDay" class="form-label">Due Day</label>
+                <input type="number" class="form-control" id="billDueDay" [(ngModel)]="selectedBill.dueDay" name="dueDay" min="1" max="31">
+                <small class="text-muted">Day of the month when the bill is due</small>
+              </div>
+              <div class="mb-3">
+                <label for="billCategory" class="form-label">Category</label>
+                <select class="form-select" id="billCategory" [(ngModel)]="selectedBill.categoryId" name="categoryId">
+                  <option [ngValue]="null">No Category</option>
+                  <option value="1">Utilities</option>
+                  <option value="2">Rent/Mortgage</option>
+                  <option value="3">Insurance</option>
+                  <option value="4">Subscriptions</option>
+                  <option value="5">Other</option>
+                </select>
+              </div>
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="billRecurring" [(ngModel)]="selectedBill.isRecurring" name="isRecurring">
+                <label class="form-check-label" for="billRecurring">
+                  Recurring Monthly Bill
+                </label>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="saveBillChanges()">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteBillModal" tabindex="-1" aria-labelledby="deleteBillModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content" *ngIf="selectedBill">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteBillModalLabel">Confirm Delete</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete the bill <strong>{{selectedBill.name}}</strong>?</p>
+            <p>This action cannot be undone.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" (click)="deleteBill()">Delete Bill</button>
+          </div>
         </div>
       </div>
     </div>

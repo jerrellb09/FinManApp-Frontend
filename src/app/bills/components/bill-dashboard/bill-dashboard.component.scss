@@ -67,3 +67,86 @@
 .bg-info {
   background: linear-gradient(135deg, #36b9cc 0%, #258391 100%) !important;
 }
+
+/* Table Styles */
+.table-responsive {
+  padding: 0;
+  
+  .table {
+    margin-bottom: 0;
+    
+    th {
+      font-weight: 600;
+      background-color: #f8f9fa;
+      border-top: none;
+    }
+    
+    td {
+      vertical-align: middle;
+    }
+  }
+}
+
+/* New Management Table Section */
+.manage-bills-table {
+  .btn-group {
+    white-space: nowrap;
+  }
+}
+
+/* Category Badges */
+.badge {
+  padding: 0.5em 0.8em;
+  border-radius: 30px;
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+/* Modal Styles */
+.modal-content {
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  
+  .modal-header {
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    background-color: #f8f9fa;
+  }
+  
+  .modal-footer {
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+  .card-header {
+    flex-direction: column;
+    align-items: start !important;
+    
+    .input-group {
+      width: 100% !important;
+      margin-top: 10px;
+    }
+  }
+  
+  .btn-group {
+    display: flex;
+    width: 100%;
+    
+    .btn {
+      flex: 1;
+    }
+  }
+}
+
+/* Animation for table rows */
+.table tbody tr {
+  transition: background-color 0.3s;
+  
+  &:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+  }
+}

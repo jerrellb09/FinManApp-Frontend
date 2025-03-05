@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -42,6 +42,7 @@ export class RegisterComponent implements OnInit {
     }
     
     this.loading = true;
+    this.error = '';
     
     const user = {
       firstName: this.registerForm.controls['firstName'].value,
@@ -50,12 +51,37 @@ export class RegisterComponent implements OnInit {
       password: this.registerForm.controls['password'].value
     };
     
+    console.log('Attempting to register user:', user.email);
+    
     this.authService.register(user).subscribe({
-      next: () => {
-        this.router.navigate(['/auth/login'], { queryParams: { registered: true }});
+      next: (response) => {
+        console.log('Registration successful, response:', response);
+        
+        // Check if the registration response includes the token
+        if (response && response.token) {
+          console.log('Token received from registration');
+          // Store auth data
+          localStorage.setItem('token', response.token);
+          if (response.user) {
+            localStorage.setItem('currentUser', JSON.stringify(response.user));
+          }
+          
+          // Redirect to home
+          this.router.navigate(['/']);
+        } else {
+          // Traditional flow - redirect to login
+          console.log('No token from registration, redirecting to login');
+          this.router.navigate(['/auth/login'], { 
+            queryParams: { 
+              registered: true, 
+              email: user.email 
+            }
+          });
+        }
       },
       error: error => {
-        this.error = error.error?.message || 'Registration failed';
+        console.error('Registration error:', error);
+        this.error = error.message || error.error?.message || 'Registration failed';
         this.loading = false;
       }
     });
