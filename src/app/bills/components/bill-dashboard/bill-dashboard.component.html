@@ -307,36 +307,39 @@
       <div class="modal-dialog">
         <div class="modal-content" *ngIf="selectedBill">
           <div class="modal-header">
-            <h5 class="modal-title" id="editBillModalLabel">Edit Bill</h5>
+            <h5 class="modal-title" id="editBillModalLabel">Edit Bill: {{selectedBill.name}}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <form>
+            <!-- Status alerts container for feedback messages -->
+            <div id="editBillStatusAlerts"></div>
+            
+            <form id="editBillForm">
               <div class="mb-3">
                 <label for="billName" class="form-label">Bill Name</label>
-                <input type="text" class="form-control" id="billName" [(ngModel)]="selectedBill.name" name="name">
+                <input type="text" class="form-control" id="billName" [(ngModel)]="selectedBill.name" name="name" required>
               </div>
               <div class="mb-3">
                 <label for="billAmount" class="form-label">Amount</label>
                 <div class="input-group">
                   <span class="input-group-text">$</span>
-                  <input type="number" class="form-control" id="billAmount" [(ngModel)]="selectedBill.amount" name="amount" step="0.01">
+                  <input type="number" class="form-control" id="billAmount" [(ngModel)]="selectedBill.amount" name="amount" step="0.01" required min="0">
                 </div>
               </div>
               <div class="mb-3">
                 <label for="billDueDay" class="form-label">Due Day</label>
-                <input type="number" class="form-control" id="billDueDay" [(ngModel)]="selectedBill.dueDay" name="dueDay" min="1" max="31">
+                <input type="number" class="form-control" id="billDueDay" [(ngModel)]="selectedBill.dueDay" name="dueDay" min="1" max="31" required>
                 <small class="text-muted">Day of the month when the bill is due</small>
               </div>
               <div class="mb-3">
                 <label for="billCategory" class="form-label">Category</label>
                 <select class="form-select" id="billCategory" [(ngModel)]="selectedBill.categoryId" name="categoryId">
                   <option [ngValue]="null">No Category</option>
-                  <option value="1">Utilities</option>
-                  <option value="2">Rent/Mortgage</option>
-                  <option value="3">Insurance</option>
-                  <option value="4">Subscriptions</option>
-                  <option value="5">Other</option>
+                  <option [ngValue]="1">Utilities</option>
+                  <option [ngValue]="2">Rent/Mortgage</option>
+                  <option [ngValue]="3">Insurance</option>
+                  <option [ngValue]="4">Subscriptions</option>
+                  <option [ngValue]="5">Other</option>
                 </select>
               </div>
               <div class="form-check mb-3">
@@ -349,7 +352,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-primary" (click)="saveBillChanges()">Save Changes</button>
+            <button type="button" class="btn btn-primary" (click)="saveBillChanges()" id="saveChangesBtn">Save Changes</button>
           </div>
         </div>
       </div>

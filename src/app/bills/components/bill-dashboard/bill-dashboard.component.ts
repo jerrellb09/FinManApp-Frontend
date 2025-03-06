@@ -192,27 +192,80 @@ export class BillDashboardComponent implements OnInit, OnDestroy {
     const deleteModalEl = document.getElementById('deleteBillModal');
     
     if (editModalEl) {
-      this.editModal = new bootstrap.Modal(editModalEl, {
-        backdrop: 'static',
-        keyboard: false
-      });
+      // Check if modal is already initialized to avoid duplicates
+      const existingModal = bootstrap.Modal.getInstance(editModalEl);
+      if (!existingModal) {
+        this.editModal = new bootstrap.Modal(editModalEl, {
+          backdrop: 'static',
+          keyboard: false
+        });
+        
+        // Add event listener for when modal is hidden
+        editModalEl.addEventListener('hidden.bs.modal', () => {
+          console.log('Edit modal was closed');
+          // Reset the form/selected bill when modal is closed
+          this.selectedBill = null;
+          // Remove any error alerts that might have been added
+          const errorAlerts = editModalEl.querySelectorAll('.alert-danger');
+          errorAlerts.forEach(alert => alert.remove());
+        });
+        
+        console.log('Edit modal initialized');
+      } else {
+        console.log('Edit modal already initialized, reusing existing instance');
+        this.editModal = existingModal;
+      }
+    } else {
+      console.error('Edit modal element not found in the DOM');
     }
     
     if (deleteModalEl) {
-      this.deleteModal = new bootstrap.Modal(deleteModalEl, {
-        backdrop: 'static',
-        keyboard: false
-      });
+      // Check if modal is already initialized to avoid duplicates
+      const existingModal = bootstrap.Modal.getInstance(deleteModalEl);
+      if (!existingModal) {
+        this.deleteModal = new bootstrap.Modal(deleteModalEl, {
+          backdrop: 'static',
+          keyboard: false
+        });
+        
+        // Add event listener for when modal is hidden
+        deleteModalEl.addEventListener('hidden.bs.modal', () => {
+          console.log('Delete modal was closed');
+          // Reset the selected bill when modal is closed
+          this.selectedBill = null;
+        });
+        
+        console.log('Delete modal initialized');
+      } else {
+        console.log('Delete modal already initialized, reusing existing instance');
+        this.deleteModal = existingModal;
+      }
+    } else {
+      console.error('Delete modal element not found in the DOM');
     }
     
     // Make sure modals close when buttons are clicked
     document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
-      button.addEventListener('click', () => {
-        if (this.editModal) {
-          this.editModal.hide();
-        }
-        if (this.deleteModal) {
-          this.deleteModal.hide();
+      console.log('Adding click handler to modal dismiss button');
+      button.addEventListener('click', (event) => {
+        console.log('Modal dismiss button clicked', event.target);
+        
+        // Find which modal this button belongs to
+        const modalElement = (event.target as HTMLElement).closest('.modal');
+        if (modalElement) {
+          const modalInstance = bootstrap.Modal.getInstance(modalElement);
+          if (modalInstance) {
+            console.log('Hiding modal via Bootstrap instance');
+            modalInstance.hide();
+          } else {
+            console.warn('Could not find Bootstrap modal instance, trying fallback');
+            // Fallback to our cached instances
+            if (modalElement.id === 'editBillModal' && this.editModal) {
+              this.editModal.hide();
+            } else if (modalElement.id === 'deleteBillModal' && this.deleteModal) {
+              this.deleteModal.hide();
+            }
+          }
         }
       });
     });
@@ -421,7 +474,19 @@ export class BillDashboardComponent implements OnInit, OnDestroy {
   
   // Edit bill functionality - new
   editBill(bill: Bill): void {
-    this.selectedBill = {...bill}; // Create a copy to avoid direct binding
+    console.log('Editing bill:', bill);
+    // Create a deep copy to avoid direct binding and ensure proper type conversions
+    this.selectedBill = {
+      id: bill.id,
+      name: bill.name,
+      amount: bill.amount,
+      dueDay: bill.dueDay,
+      isPaid: bill.isPaid,
+      isRecurring: bill.isRecurring,
+      userId: bill.userId,
+      categoryId: bill.categoryId ? Number(bill.categoryId) : undefined
+    };
+    console.log('Selected bill for editing:', this.selectedBill);
     if (this.editModal) {
       this.editModal.show();
     }
@@ -431,24 +496,109 @@ export class BillDashboardComponent implements OnInit, OnDestroy {
   saveBillChanges(): void {
     if (!this.selectedBill) return;
     
-    this.billService.updateBill(this.selectedBill.id, this.selectedBill).subscribe({
-      next: () => {
+    // Add loading indicator within the save button
+    const saveButton = document.querySelector('#editBillModal .btn-primary') as HTMLButtonElement;
+    if (saveButton) {
+      const originalText = saveButton.innerHTML;
+      saveButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Saving...';
+      saveButton.disabled = true;
+    }
+    
+    // Ensure proper type conversion
+    const updatedBill: Bill = {
+      ...this.selectedBill,
+      id: Number(this.selectedBill.id),
+      amount: typeof this.selectedBill.amount === 'string' ? 
+        parseFloat(this.selectedBill.amount) : this.selectedBill.amount,
+      dueDay: Number(this.selectedBill.dueDay),
+      categoryId: this.selectedBill.categoryId ? Number(this.selectedBill.categoryId) : undefined
+    };
+    
+    console.log('Saving bill with updated values:', updatedBill);
+    
+    this.billService.updateBill(updatedBill.id, updatedBill).subscribe({
+      next: (result) => {
+        console.log('Bill updated successfully:', result);
+        
+        // Create a toast notification
+        const toast = document.createElement('div');
+        toast.classList.add('toast', 'show', 'position-fixed', 'top-0', 'end-0', 'm-3');
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        toast.style.zIndex = '1050';
+        toast.innerHTML = `
+          <div class="toast-header bg-success text-white">
+            <strong class="me-auto">Success</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+          <div class="toast-body">
+            Bill "${updatedBill.name}" was successfully updated.
+          </div>
+        `;
+        document.body.appendChild(toast);
+        
+        // Auto-remove toast after 3 seconds
+        setTimeout(() => {
+          toast.remove();
+        }, 3000);
+        
+        // Hide modal using the Bootstrap API
         if (this.editModal) {
           this.editModal.hide();
+        } else {
+          // Fallback for modal hiding
+          const modalElement = document.getElementById('editBillModal');
+          if (modalElement) {
+            const bsModal = bootstrap.Modal.getInstance(modalElement);
+            if (bsModal) {
+              bsModal.hide();
+            }
+          }
         }
+        
+        // Reload data to show the updated bill
         this.loadData();
         this.error = '';
       },
       error: (err) => {
+        // Show error message in the modal
+        const modalBody = document.querySelector('#editBillModal .modal-body');
+        if (modalBody) {
+          const errorAlert = document.createElement('div');
+          errorAlert.classList.add('alert', 'alert-danger', 'mt-3');
+          errorAlert.textContent = 'Failed to update bill. Please try again.';
+          modalBody.appendChild(errorAlert);
+          
+          // Auto-remove after 3 seconds
+          setTimeout(() => {
+            errorAlert.remove();
+          }, 3000);
+        }
+        
         this.error = 'Failed to update bill. Please try again.';
         console.error(err);
+        
+        // Reset save button
+        if (saveButton) {
+          saveButton.innerHTML = 'Save Changes';
+          saveButton.disabled = false;
+        }
+      },
+      complete: () => {
+        // Reset save button in either case
+        if (saveButton) {
+          saveButton.innerHTML = 'Save Changes';
+          saveButton.disabled = false;
+        }
       }
     });
   }
   
   // Delete bill functionality - new
   confirmDeleteBill(bill: Bill): void {
-    this.selectedBill = bill;
+    console.log('Confirming delete of bill:', bill);
+    this.selectedBill = { ...bill }; // Create a copy
     if (this.deleteModal) {
       this.deleteModal.show();
     }
@@ -457,7 +607,10 @@ export class BillDashboardComponent implements OnInit, OnDestroy {
   deleteBill(): void {
     if (!this.selectedBill) return;
     
-    this.billService.deleteBill(this.selectedBill.id).subscribe({
+    const billId = Number(this.selectedBill.id);
+    console.log('Deleting bill with ID:', billId);
+    
+    this.billService.deleteBill(billId).subscribe({
       next: () => {
         if (this.deleteModal) {
           this.deleteModal.hide();
