@@ -1,6 +1,14 @@
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Your Bills</h1>
+    <div>
+      <h1 class="mb-0">Your Bills</h1>
+      <small class="text-muted" *ngIf="!loading">
+        Last updated: {{ lastUpdated | date:'medium' }}
+        <button class="btn btn-sm btn-link p-0 ms-2" (click)="refreshData()" title="Refresh data" [disabled]="refreshing">
+          <i class="bi" [ngClass]="{'bi-arrow-clockwise': !refreshing, 'bi-arrow-clockwise-fill spin': refreshing}"></i>
+        </button>
+      </small>
+    </div>
     <div>
       <button class="btn btn-outline-primary me-2" (click)="resetMonthlyBills()" [disabled]="loading || bills.length === 0">
         <i class="bi bi-arrow-clockwise me-1"></i> Reset Monthly Bills
@@ -30,6 +38,9 @@
       <div>
         <strong>{{error}}</strong>
         <p class="mb-0 mt-1" *ngIf="error.includes('API')">The bill management backend service may need to be started or implemented.</p>
+        <button *ngIf="!loading" (click)="refreshData()" class="btn btn-outline-secondary btn-sm mt-2">
+          <i class="bi bi-arrow-clockwise me-1"></i> Retry
+        </button>
       </div>
     </div>
   </div>
@@ -48,60 +59,92 @@
   
   <!-- Bills List -->
   <div *ngIf="!loading && bills.length > 0">
-    <div class="table-responsive">
-      <table class="table table-hover">
-        <thead class="table-light">
-          <tr>
-            <th>Name</th>
-            <th>Amount</th>
-            <th>Due Date</th>
-            <th>Status</th>
-            <th>Recurring</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let bill of bills" [ngClass]="{'table-warning': isDueSoon(bill) && !bill.isPaid, 'table-success': bill.isPaid}">
-            <td>{{bill.name}}</td>
-            <td>${{formatCurrency(bill.amount)}}</td>
-            <td>
-              Day {{bill.dueDay}} of each month
-              <span *ngIf="!bill.isPaid && getDaysUntilDue(bill.dueDay) <= 5" class="badge bg-danger ms-2">
-                Due in {{getDaysUntilDue(bill.dueDay)}} days
-              </span>
-            </td>
-            <td>
-              <span class="badge" [ngClass]="bill.isPaid ? 'bg-success' : 'bg-danger'">
-                {{ bill.isPaid ? 'Paid' : 'Unpaid' }}
-              </span>
-            </td>
-            <td>
-              <i class="bi" [ngClass]="bill.isRecurring ? 'bi-arrow-repeat text-primary' : 'bi-x-circle text-secondary'"></i>
-              {{ bill.isRecurring ? 'Monthly' : 'One-time' }}
-            </td>
-            <td>
-              <div class="btn-group">
-                <button 
-                  *ngIf="!bill.isPaid" 
-                  class="btn btn-sm btn-success me-1" 
-                  (click)="markAsPaid(bill.id)"
-                  title="Mark as Paid">
-                  <i class="bi bi-check-circle"></i>
-                </button>
-                <a 
-                  [routerLink]="['/bills/edit', bill.id]" 
-                  class="btn btn-sm btn-primary me-1"
-                  title="Edit Bill">
-                  <i class="bi bi-pencil"></i>
-                </a>
-                <button 
-                  class="btn btn-sm btn-danger" 
-                  (click)="deleteBill(bill.id)"
-                  title="Delete Bill">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </div>
-            </td>
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-light">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Your Bills</h5>
+          <div class="text-muted small">
+            Total: {{bills.length}} bill(s)
+          </div>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Amount</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Recurring</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let bill of bills" [ngClass]="{'table-warning': isDueSoon(bill) && !bill.isPaid, 'table-success': bill.isPaid}">
+              <td class="align-middle">
+                <strong>{{bill.name}}</strong>
+                <span *ngIf="bill.categoryId" class="badge ms-2" [ngClass]="{
+                  'bg-info': bill.categoryId === 1,
+                  'bg-primary': bill.categoryId === 2, 
+                  'bg-success': bill.categoryId === 3,
+                  'bg-warning text-dark': bill.categoryId === 4,
+                  'bg-secondary': bill.categoryId === 5
+                }">
+                  {{bill.categoryId === 1 ? 'Utilities' : 
+                    bill.categoryId === 2 ? 'Rent/Mortgage' : 
+                    bill.categoryId === 3 ? 'Insurance' : 
+                    bill.categoryId === 4 ? 'Subscriptions' : 'Other'}}
+                </span>
+              </td>
+              <td class="align-middle text-nowrap">
+                <span class="fw-bold">${{formatCurrency(bill.amount)}}</span>
+              </td>
+              <td class="align-middle">
+                <div>
+                  <span>Day {{bill.dueDay}} of month</span>
+                  <span *ngIf="!bill.isPaid && getDaysUntilDue(bill.dueDay) <= 5" class="badge bg-danger ms-1">
+                    Due in {{getDaysUntilDue(bill.dueDay)}} days
+                  </span>
+                  <span *ngIf="!bill.isPaid && getDaysUntilDue(bill.dueDay) > 5" class="badge bg-info ms-1">
+                    In {{getDaysUntilDue(bill.dueDay)}} days
+                  </span>
+                </div>
+              </td>
+              <td class="align-middle">
+                <span class="badge" [ngClass]="bill.isPaid ? 'bg-success' : 'bg-danger'">
+                  {{ bill.isPaid ? 'Paid' : 'Unpaid' }}
+                </span>
+              </td>
+              <td class="align-middle">
+                <span class="badge" [ngClass]="bill.isRecurring ? 'bg-primary' : 'bg-secondary'">
+                  <i class="bi" [ngClass]="bill.isRecurring ? 'bi-arrow-repeat' : 'bi-x-circle'"></i>
+                  {{ bill.isRecurring ? 'Monthly' : 'One-time' }}
+                </span>
+              </td>
+              <td class="align-middle text-nowrap">
+                <div class="btn-group">
+                  <button 
+                    *ngIf="!bill.isPaid" 
+                    class="btn btn-sm btn-success me-1" 
+                    (click)="markAsPaid(bill.id)"
+                    title="Mark as Paid">
+                    <i class="bi bi-check-circle"></i>
+                  </button>
+                  <a 
+                    [routerLink]="['/bills/edit', bill.id]" 
+                    class="btn btn-sm btn-primary me-1"
+                    title="Edit Bill">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <button 
+                    class="btn btn-sm btn-danger" 
+                    (click)="deleteBill(bill.id)"
+                    title="Delete Bill">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
           </tr>
         </tbody>
       </table>

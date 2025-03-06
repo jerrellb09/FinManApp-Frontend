@@ -1,5 +1,15 @@
 <div class="container mt-4">
-  <h1 class="mb-4">Bill Management Dashboard</h1>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-0">Bill Management Dashboard</h1>
+      <small class="text-muted" *ngIf="!loading && !error">
+        Last updated: {{ lastUpdated | date:'medium' }}
+      </small>
+    </div>
+    <button *ngIf="!loading" (click)="refreshData()" class="btn btn-outline-secondary" title="Refresh data" [disabled]="refreshing">
+      <i class="bi" [ngClass]="{'bi-arrow-clockwise': !refreshing, 'bi-arrow-clockwise spin': refreshing}"></i>
+    </button>
+  </div>
   
   <!-- Loading Spinner -->
   <div *ngIf="loading" class="text-center my-5">
@@ -16,6 +26,9 @@
       <div>
         <strong>{{error}}</strong>
         <p class="mb-0 mt-1" *ngIf="error.includes('API')">The bill management backend service may need to be started or implemented.</p>
+        <button *ngIf="!loading" (click)="refreshData()" class="btn btn-outline-secondary btn-sm mt-2">
+          <i class="bi bi-arrow-clockwise me-1"></i> Retry
+        </button>
       </div>
     </div>
   </div>
@@ -235,7 +248,12 @@
                   </td>
                 </tr>
                 <tr *ngFor="let bill of filteredBills">
-                  <td>{{bill.name}}</td>
+                  <td>
+                    {{bill.name}}
+                    <span *ngIf="bill.isRecurring" class="badge bg-info ms-1" title="Recurring monthly bill">
+                      <i class="bi bi-arrow-repeat"></i>
+                    </span>
+                  </td>
                   <td>${{formatCurrency(bill.amount)}}</td>
                   <td>
                     <span [ngClass]="{'text-danger': isDue(bill), 'text-warning': isUpcoming(bill)}">
@@ -250,6 +268,13 @@
                   </td>
                   <td>
                     <span class="badge" [ngClass]="getCategoryBadgeClass(bill.categoryId)">
+                      <i class="bi me-1" [ngClass]="{
+                        'bi-lightning-charge': bill.categoryId === 1,
+                        'bi-house': bill.categoryId === 2,
+                        'bi-shield': bill.categoryId === 3,
+                        'bi-credit-card': bill.categoryId === 4,
+                        'bi-tag': bill.categoryId === 5 || !bill.categoryId
+                      }"></i>
                       {{getCategoryName(bill.categoryId)}}
                     </span>
                   </td>

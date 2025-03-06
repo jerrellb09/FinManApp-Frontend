@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BillService } from '../../../services/bill.service';
 import { AuthService } from '../../../services/auth.service';
 import { Bill } from '../../../models/bill.model';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Subscription } from 'rxjs';
 
 declare var bootstrap: any;
 
@@ -11,18 +13,20 @@ declare var bootstrap: any;
   templateUrl: './bill-dashboard.component.html',
   styleUrls: ['./bill-dashboard.component.scss']
 })
-export class BillDashboardComponent implements OnInit {
+export class BillDashboardComponent implements OnInit, OnDestroy {
   bills: Bill[] = [];
   filteredBills: Bill[] = [];
   dueBills: Bill[] = [];
   paidBills: Bill[] = [];
   unpaidBills: Bill[] = [];
   loading = true;
+  refreshing = false; // For background refreshes
   error = '';
   userId: number | null = null;
   remainingIncome = 0;
   totalBillAmount = 0;
   totalDueAmount = 0;
+  lastUpdated: Date = new Date();
   
   // UI state
   selectedBill: Bill | null = null;
@@ -30,9 +34,16 @@ export class BillDashboardComponent implements OnInit {
   editModal: any;
   deleteModal: any;
   
+  // Subscriptions
+  private routeQueryParamsSub: Subscription | null = null;
+  private authSub: Subscription | null = null;
+  private refreshInterval: any = null;
+  
   constructor(
     private billService: BillService,
-    private authService: AuthService
+    private authService: AuthService,
+    private route: ActivatedRoute,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -47,12 +58,68 @@ export class BillDashboardComponent implements OnInit {
       }
     }, 7000);
     
-    this.setupAuthentication();
+    // Setup route query params subscription to handle refresh from bill creation/edit
+    this.routeQueryParamsSub = this.route.queryParams.subscribe(params => {
+      const shouldRefresh = params['refresh'] === 'true';
+      
+      if (shouldRefresh) {
+        console.log('Refresh parameter detected, will reload data');
+        // Clear the refresh parameter without reloading the page
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { refresh: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+        
+        // Reset any error state
+        this.error = '';
+        
+        // Force a complete data refresh with a small delay
+        // to ensure the backend has processed any recent changes
+        if (this.userId) {
+          console.log('Forcing data refresh due to refresh parameter');
+          this.loading = true; // Show loading immediately
+          
+          // Add a small delay to ensure backend has processed any changes
+          setTimeout(() => {
+            this.loadData(true);
+          }, 500);
+        }
+      }
+      
+      // Always set up authentication
+      this.setupAuthentication();
+    });
     
     // Initialize modals
     setTimeout(() => {
       this.initializeModals();
     }, 500);
+    
+    // Set up auto-refresh every 2 minutes
+    this.refreshInterval = setInterval(() => {
+      console.log('Auto-refreshing dashboard data');
+      if (this.userId) {
+        this.loadData(false); // Don't show main loading indicator for auto-refresh
+      }
+    }, 120000); // Refresh every 2 minutes
+  }
+  
+  ngOnDestroy(): void {
+    // Clean up subscriptions to prevent memory leaks
+    if (this.routeQueryParamsSub) {
+      this.routeQueryParamsSub.unsubscribe();
+    }
+    
+    if (this.authSub) {
+      this.authSub.unsubscribe();
+    }
+    
+    // Clear auto-refresh interval
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
   
   private setupAuthentication(): void {
@@ -94,8 +161,13 @@ export class BillDashboardComponent implements OnInit {
         });
     }
     
+    // Unsubscribe from previous subscription if exists
+    if (this.authSub) {
+      this.authSub.unsubscribe();
+    }
+    
     // Listen for user state changes
-    this.authService.currentUser.subscribe({
+    this.authSub = this.authService.currentUser.subscribe({
       next: (user) => {
         if (user && user.id) {
           if (!this.userId) {
@@ -146,18 +218,26 @@ export class BillDashboardComponent implements OnInit {
     });
   }
 
-  loadData(): void {
+  loadData(showLoading: boolean = true): void {
     if (!this.userId) {
       this.loading = false;
+      this.refreshing = false;
       return;
     }
     
-    this.loading = true;
+    if (showLoading) {
+      this.loading = true;
+      this.refreshing = false;
+    } else {
+      // If this is a background refresh, don't show the main loading indicator
+      this.loading = false;
+      this.refreshing = true;
+    }
     this.error = '';
     
     // Try to simulate the data since the backend might not be ready
     try {
-      // Mock data for immediate display while we try the real API
+      // Reset data before loading new data
       this.bills = [];
       this.filteredBills = [];
       this.unpaidBills = [];
@@ -175,8 +255,9 @@ export class BillDashboardComponent implements OnInit {
         completedCalls++;
         console.log(`API call ${completedCalls} of ${totalCalls} completed`);
         if (completedCalls >= totalCalls) {
-          console.log('All API calls completed, stopping loading spinner');
+          console.log('All API calls completed, stopping loading/refresh indicators');
           this.loading = false;
+          this.refreshing = false;
         }
       };
       
@@ -197,11 +278,21 @@ export class BillDashboardComponent implements OnInit {
             // Apply any existing filters
             this.applyFilters();
             
+            // Update last refreshed timestamp
+            this.lastUpdated = new Date();
+            
             checkAllCompleted();
           },
           error: (err) => {
             console.error('Error loading bills:', err);
-            this.error = 'Failed to load bills. The bill management API may not be available yet.';
+            // More specific error message based on status code
+            if (err.status === 0) {
+              this.error = 'Unable to connect to the bill management API. The backend service may be offline.';
+            } else if (err.status === 401 || err.status === 403) {
+              this.error = 'Authentication error. Please try logging in again.';
+            } else {
+              this.error = `Error loading bills: ${err.error?.message || err.message || 'Unknown error'}`;
+            }
             this.bills = [];
             this.filteredBills = [];
             this.unpaidBills = [];
@@ -479,6 +570,19 @@ export class BillDashboardComponent implements OnInit {
       case 4: return 'bg-warning text-dark';
       case 5: return 'bg-secondary';
       default: return 'bg-secondary';
+    }
+  }
+  
+  // Force refresh data
+  refreshData(): void {
+    console.log('Manual refresh requested');
+    this.error = '';
+    
+    if (this.userId) {
+      this.loadData(true); // Show full loading indicator for manual refresh
+    } else {
+      // Try to get user info again
+      this.setupAuthentication();
     }
   }
 }

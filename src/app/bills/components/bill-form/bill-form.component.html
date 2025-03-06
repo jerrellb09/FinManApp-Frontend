@@ -14,13 +14,29 @@
           </div>
           
           <!-- Success and Error messages -->
-          <div class="alert alert-success" *ngIf="success">{{ success }}</div>
+          <div class="alert alert-success" *ngIf="success">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-check-circle-fill me-2 fs-4"></i>
+              <div>
+                <strong>{{ success }}</strong>
+                <p class="mb-0 mt-1" *ngIf="success.includes('created')">
+                  Redirecting to bill dashboard...
+                </p>
+              </div>
+            </div>
+          </div>
+          
           <div *ngIf="error" class="alert alert-warning">
             <div class="d-flex align-items-center">
               <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
               <div>
                 <strong>{{error}}</strong>
-                <p class="mb-0 mt-1" *ngIf="error.includes('API')">The bill management backend service may need to be started or implemented.</p>
+                <p class="mb-0 mt-1" *ngIf="error.includes('API')">
+                  The bill management backend service may need to be started or implemented.
+                </p>
+                <button (click)="retry()" class="btn btn-outline-secondary btn-sm mt-2" [disabled]="submitting">
+                  <i class="bi bi-arrow-clockwise me-1"></i> Try Again
+                </button>
               </div>
             </div>
           </div>
@@ -91,7 +107,11 @@
                 id="categoryId"
               >
                 <option [ngValue]="null">-- Select a category --</option>
-                <option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option>
+                <option [ngValue]="1">Utilities</option>
+                <option [ngValue]="2">Rent/Mortgage</option>
+                <option [ngValue]="3">Insurance</option>
+                <option [ngValue]="4">Subscriptions</option>
+                <option [ngValue]="5">Other</option>
               </select>
               <small class="form-text text-muted">Categorize your bill for better expense tracking</small>
             </div>
