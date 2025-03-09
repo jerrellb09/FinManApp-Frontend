@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://api.yourdeploymenturl.com' // Replace with your actual API URL in production
+  apiUrl: 'https://fin-man-app.herokuapp.com' // Replace this with your actual Heroku URL
 };
