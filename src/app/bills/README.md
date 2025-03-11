@@ -1,6 +1,6 @@
 # Bills Management Feature
 
-This module implements the user interface for managing recurring bills and expenses in the TradingbotV2 application.
+This module implements the user interface for managing recurring bills and expenses in the FinManApp application.
 
 ## Features
 

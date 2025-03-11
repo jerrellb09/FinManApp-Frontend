@@ -1,6 +1,6 @@
-# TradingBot V2 - Frontend
+# FinManApp - Frontend
 
-This is the Angular frontend for the TradingBot V2 application.
+This is the Angular frontend for the Fin Man App application.
 
 ## Features
 - User authentication
@@ -36,7 +36,7 @@ npm run build
 The build artifacts will be stored in the `dist/` directory.
 
 ## Integration with Backend
-This frontend is designed to work with the Spring Boot backend of TradingBot V2. Make sure the backend server is running on http://localhost:8080 or update the API URL in the environment configuration.
+This frontend is designed to work with the Spring Boot backend of FinManApp. Make sure the backend server is running on http://localhost:8080 or update the API URL in the environment configuration.
 
 ## Customizing the API URL
 - For development: Update `src/environments/environment.ts`
