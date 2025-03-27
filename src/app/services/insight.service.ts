@@ -54,4 +54,20 @@ export class InsightService {
     
     return this.http.get<any>(`${this.apiUrl}/top-merchants`, { params });
   }
+  
+  /**
+   * AI-powered insights endpoints
+   */
+  
+  getAIFinancialInsights(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/ai/financial-insights`);
+  }
+  
+  getAIBudgetSuggestions(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/ai/budget-suggestions`);
+  }
+  
+  getAISpendingHabits(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/ai/spending-habits`);
+  }
 }

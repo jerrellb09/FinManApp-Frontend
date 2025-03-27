@@ -1,0 +1,28 @@
+.feature-icon-wrapper {
+  width: 70px;
+  height: 70px;
+}
+
+.hover-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    border-color: var(--bs-primary);
+  }
+}
+
+[data-feature="financial-insights"] .card-body {
+  border-top: 4px solid var(--bs-primary);
+}
+
+[data-feature="budget-suggestions"] .card-body {
+  border-top: 4px solid var(--bs-success);
+}
+
+[data-feature="spending-habits"] .card-body {
+  border-top: 4px solid var(--bs-info);
+}

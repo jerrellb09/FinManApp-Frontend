@@ -1,0 +1,38 @@
+.insights-container {
+  position: relative;
+}
+
+.insight-item {
+  border-radius: 10px;
+  position: relative;
+  transition: transform 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 5px;
+    border-radius: 5px 0 0 5px;
+  }
+}
+
+.insight-item-0 {
+  background-color: rgba(13, 110, 253, 0.05);
+  border-left: 5px solid var(--bs-primary);
+}
+
+.insight-item-1 {
+  background-color: rgba(25, 135, 84, 0.05);
+  border-left: 5px solid var(--bs-success);
+}
+
+.insight-item-2 {
+  background-color: rgba(13, 202, 240, 0.05);
+  border-left: 5px solid var(--bs-info);
+}

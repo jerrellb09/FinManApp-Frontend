@@ -1,0 +1,17 @@
+.ai-response {
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+tr:hover .btn-outline-primary {
+  background-color: var(--bs-primary);
+  color: white;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

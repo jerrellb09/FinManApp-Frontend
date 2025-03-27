@@ -1,0 +1,30 @@
+.card {
+  transition: transform 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+// Fix to ensure canvases render correctly
+canvas {
+  max-width: 100%;
+}
+
+// Make embedded charts responsive
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+// Style for the AI analysis text
+:host ::ng-deep {
+  p strong {
+    color: var(--bs-info);
+  }
+  
+  ul li {
+    margin-bottom: 0.5rem;
+  }
+}

@@ -1,0 +1,139 @@
+<div class="container mt-4">
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/insights">Insights</a></li>
+          <li class="breadcrumb-item"><a routerLink="/insights/ai">AI Insights</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Spending Habits</li>
+        </ol>
+      </nav>
+      
+      <div class="d-flex justify-content-between align-items-center">
+        <h1 class="mb-0">
+          <i class="bi bi-graph-up text-info me-2"></i> Spending Habits Analysis
+        </h1>
+        <button class="btn btn-outline-info" (click)="refreshAnalysis()" [disabled]="loading">
+          <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+        </button>
+      </div>
+      <p class="text-muted">
+        AI-powered analysis of your spending habits with visualizations and recommendations.
+      </p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-grow text-info mb-3" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <h5 class="text-muted">Analyzing your spending habits...</h5>
+    <p class="text-muted small">Our AI is processing your transaction data to identify patterns and trends.</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error }}
+  </div>
+  
+  <!-- AI Service Status Alert -->
+  <div *ngIf="analysis && analysis.includes('Note: This is a fallback response')" class="alert alert-warning" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i> The AI service is currently not available. Docker container for LLaMA 3 is not running. You are seeing generic spending analysis.
+  </div>
+
+  <!-- Content when data is loaded -->
+  <div *ngIf="!loading && !error && analysis">
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h3 class="card-title mb-4">AI Spending Analysis</h3>
+            <p class="card-text" [innerHTML]="analysis"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Chart Section -->
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <h3 class="mb-3">Spending Visualizations</h3>
+        <p class="text-muted mb-4">
+          These visualizations illustrate your spending patterns and help identify areas where you might optimize your budget.
+        </p>
+      </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row">
+      <!-- Chart 1: Category Breakdown -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <canvas #chart1 width="400" height="400"></canvas>
+          </div>
+          <div class="card-footer bg-light">
+            <p class="mb-0 small text-muted">
+              <i class="bi bi-info-circle me-1"></i> Breakdown of spending by category
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Chart 2: Weekly Spending Pattern -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <canvas #chart2 width="400" height="400"></canvas>
+          </div>
+          <div class="card-footer bg-light">
+            <p class="mb-0 small text-muted">
+              <i class="bi bi-info-circle me-1"></i> Weekly spending patterns
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Chart 3: Top Spending Categories -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <canvas #chart3 width="400" height="400"></canvas>
+          </div>
+          <div class="card-footer bg-light">
+            <p class="mb-0 small text-muted">
+              <i class="bi bi-info-circle me-1"></i> Top spending categories
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- AI Chart Suggestions -->
+    <div class="row mb-4" *ngIf="chartSuggestions && Object.keys(chartSuggestions).length > 0">
+      <div class="col-md-12">
+        <div class="card bg-light shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">Additional Visualization Suggestions</h5>
+            <div class="list-group">
+              <div *ngFor="let key of Object.keys(chartSuggestions)" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                  <h6 class="mb-1">Suggested Chart {{ key.replace('chart', '') }}</h6>
+                </div>
+                <p class="mb-1">{{ chartSuggestions[key] }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && !analysis" class="text-center my-5">
+    <i class="bi bi-bar-chart-line fs-1 text-muted mb-3"></i>
+    <h4>No spending analysis available</h4>
+    <p class="text-muted">We need more transaction data to analyze your spending habits. Add transactions or try again later.</p>
+  </div>
+</div>
