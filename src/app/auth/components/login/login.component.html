@@ -53,6 +53,15 @@
             <p>Don't have an account? <a routerLink="/auth/register">Sign up</a></p>
           </div>
           
+          <!-- Demo mode button -->
+          <div class="text-center mt-4">
+            <p>Or try a demo without registration</p>
+            <button (click)="tryDemoMode()" class="btn btn-outline-success" [disabled]="demoLoading">
+              <span *ngIf="demoLoading" class="spinner-border spinner-border-sm me-1"></span>
+              Try Demo
+            </button>
+          </div>
+          
           <!-- Debug info panel - only shown when ?debug=true is in URL -->
           <div *ngIf="debug" class="mt-4 p-3 border border-warning rounded bg-light">
             <h6 class="text-warning">Debug Information</h6>

@@ -64,6 +64,75 @@ export class AuthService {
       );
   }
   
+  /**
+   * Logs the user in with the demo account.
+   * This method is used when accessing the application from justjay.net
+   * or when clicking the Demo button.
+   * 
+   * @returns An observable of User with the demo user information
+   */
+  demoLogin(): Observable<User> {
+    console.log('Attempting demo login...');
+    
+    return this.http.get<any>(`${this.apiUrl}/auth/demo-login`, {
+      headers: {
+        // Add a custom header to indicate this is a demo login request
+        'X-Demo-Request': 'true',
+        // Set Referer header to justjay.net (this is required by the backend)
+        'Referer': 'https://justjay.net'
+      }
+    }).pipe(
+      map(response => {
+        console.log('Demo login response:', response);
+        
+        // Validate response contains expected data
+        if (!response || !response.token) {
+          throw new Error('Invalid demo login response - missing token');
+        }
+        
+        // Use user from response
+        const user = response.user;
+        if (!user || !user.id) {
+          throw new Error('Invalid demo login response - missing user data');
+        }
+        
+        // Set demo flag in localStorage to indicate this is a demo session
+        localStorage.setItem('demoMode', 'true');
+        
+        // Save user data and token
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        localStorage.setItem('token', response.token);
+        this.currentUserSubject.next(user);
+        return user;
+      }),
+      catchError(error => {
+        console.error('Demo login error:', error);
+        
+        // Provide a better error message based on the error
+        let errorMessage = 'Failed to access demo mode';
+        
+        if (error.status === 403) {
+          errorMessage = 'Demo access is only available from justjay.net';
+        } else if (error.status === 404) {
+          errorMessage = 'Demo mode is not available';
+        } else if (error.status === 401) {
+          errorMessage = 'Unauthorized to access demo mode';
+        }
+        
+        return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
+  
+  /**
+   * Checks if the current session is in demo mode.
+   * 
+   * @returns True if the current session is using a demo account
+   */
+  isDemoMode(): boolean {
+    return localStorage.getItem('demoMode') === 'true';
+  }
+  
   register(user: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/register`, user);
   }
@@ -72,6 +141,7 @@ export class AuthService {
     // remove user from local storage to log user out
     localStorage.removeItem('currentUser');
     localStorage.removeItem('token');
+    localStorage.removeItem('demoMode'); // Clear demo mode flag
     this.currentUserSubject.next(null);
   }
   

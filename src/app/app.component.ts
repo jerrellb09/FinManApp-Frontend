@@ -31,6 +31,9 @@ export class AppComponent implements OnInit {
       }
     });
     
+    // Check for referrer from justjay.net
+    this.checkReferrerForDemoMode();
+    
     // Check if user is already logged in
     this.isLoggedIn = this.authService.isAuthenticated();
     
@@ -44,9 +47,60 @@ export class AppComponent implements OnInit {
     }
   }
   
+  /**
+   * Checks if the user is coming from justjay.net and activates demo mode if they are.
+   * This auto-logs them into the demo account.
+   */
+  private checkReferrerForDemoMode(): void {
+    // Skip if user is already logged in
+    if (this.authService.isAuthenticated()) {
+      console.log('User already authenticated, skipping auto demo login');
+      return;
+    }
+    
+    // Check if we've already tried demo login in this session to avoid loops
+    const demoLoginAttempted = sessionStorage.getItem('demoLoginAttempted');
+    if (demoLoginAttempted) {
+      console.log('Demo login already attempted in this session');
+      return;
+    }
+    
+    // Get the document referrer (where the user came from)
+    const referrer = document.referrer;
+    console.log('Checking referrer for demo mode:', referrer);
+    
+    // Check if coming from justjay.net
+    if (referrer && referrer.includes('justjay.net')) {
+      console.log('User coming from justjay.net - activating demo mode');
+      
+      // Mark that we've attempted demo login in this session
+      sessionStorage.setItem('demoLoginAttempted', 'true');
+      
+      // Auto login with demo account
+      this.authService.demoLogin().subscribe({
+        next: user => {
+          console.log('Demo login successful');
+          
+          // Add a small delay before navigating to ensure everything is properly initialized
+          setTimeout(() => {
+            this.router.navigate(['/']);
+          }, 500);
+        },
+        error: err => {
+          console.error('Demo login failed:', err);
+          // Don't redirect, let them log in normally
+        }
+      });
+    }
+  }
+  
   logout(event: Event): void {
     event.preventDefault();
     this.authService.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  isDemoMode(): boolean {
+    return this.authService.isDemoMode();
   }
 }

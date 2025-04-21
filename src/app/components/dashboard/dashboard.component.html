@@ -22,12 +22,12 @@
           <div *ngIf="accounts.length > 0" class="row">
             <div class="col-md-6">
               <h6>Total Balance</h6>
-              <h3>${{totalBalance.toFixed(2)}}</h3>
+              <h3>${{totalBalance ? totalBalance.toFixed(2) : '0.00'}}</h3>
             </div>
             <div class="col-md-6">
               <div *ngFor="let account of accounts" class="d-flex justify-content-between border-bottom py-2">
-                <span>{{account.name}}</span>
-                <span>${{account.balance.toFixed(2)}}</span>
+                <span>{{account.name || 'Account'}}</span>
+                <span>${{account.balance ? account.balance.toFixed(2) : '0.00'}}</span>
               </div>
             </div>
           </div>
@@ -50,11 +50,11 @@
           
           <div *ngFor="let transaction of recentTransactions" class="d-flex justify-content-between border-bottom py-2">
             <div>
-              <div>{{transaction.description}}</div>
-              <small class="text-muted">{{transaction.date}}</small>
+              <div>{{transaction.description || 'Unknown Transaction'}}</div>
+              <small class="text-muted">{{transaction.date | date:'medium' || 'No date'}}</small>
             </div>
             <span [class.text-danger]="transaction.amount < 0" [class.text-success]="transaction.amount > 0">
-              {{transaction.amount > 0 ? '+' : ''}}${{transaction.amount.toFixed(2)}}
+              {{transaction.amount > 0 ? '+' : ''}}${{transaction.amount ? transaction.amount.toFixed(2) : '0.00'}}
             </span>
           </div>
         </div>
@@ -73,8 +73,8 @@
           
           <div *ngFor="let budget of activeBudgets" class="mb-3">
             <div class="d-flex justify-content-between">
-              <span>{{budget.name}}</span>
-              <span>${{(budget.spending?.currentSpending || 0).toFixed(2)}} / ${{budget.amount.toFixed(2)}}</span>
+              <span>{{budget.name || 'Budget'}}</span>
+              <span>${{(budget.spending?.currentSpending || 0).toFixed(2)}} / ${{budget.amount ? budget.amount.toFixed(2) : '0.00'}}</span>
             </div>
             <div class="progress">
               <div class="progress-bar" 
@@ -103,8 +103,8 @@
             <div *ngFor="let category of spendingByCategory" class="col-md-4 mb-3">
               <div class="card">
                 <div class="card-body">
-                  <h6>{{category.name}}</h6>
-                  <h4>${{category.amount.toFixed(2)}}</h4>
+                  <h6>{{category.name || 'Category'}}</h6>
+                  <h4>${{category.amount ? category.amount.toFixed(2) : '0.00'}}</h4>
                 </div>
               </div>
             </div>

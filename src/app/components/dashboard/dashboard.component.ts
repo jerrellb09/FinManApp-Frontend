@@ -93,12 +93,39 @@ export class DashboardComponent implements OnInit {
   loadBudgetSpending(): void {
     // For each active budget, get its current spending
     this.activeBudgets.forEach((budget, index) => {
+      // Skip if budget has no id
+      if (!budget.id) {
+        console.warn('Budget missing ID, cannot load spending');
+        // Create a placeholder spending object to prevent UI errors
+        this.activeBudgets[index] = { 
+          ...budget, 
+          spending: { 
+            currentSpending: 0, 
+            budgetAmount: budget.amount || 0,
+            percentageUsed: 0,
+            remaining: budget.amount || 0
+          } 
+        };
+        return;
+      }
+      
       this.budgetService.getBudgetSpending(budget.id).subscribe({
         next: (data) => {
           this.activeBudgets[index] = { ...budget, spending: data };
         },
         error: (err) => {
           console.error(`Failed to load spending for budget ${budget.id}`, err);
+          
+          // Create a placeholder spending object to prevent UI errors
+          this.activeBudgets[index] = { 
+            ...budget, 
+            spending: { 
+              currentSpending: 0, 
+              budgetAmount: budget.amount || 0,
+              percentageUsed: 0,
+              remaining: budget.amount || 0
+            } 
+          };
         }
       });
     });
@@ -127,12 +154,18 @@ export class DashboardComponent implements OnInit {
   }
   
   calculateTotalBalance(): void {
-    this.totalBalance = this.accounts.reduce((sum, account) => sum + account.balance, 0);
+    this.totalBalance = this.accounts.reduce((sum, account) => {
+      // Handle potential null or undefined values
+      const balance = account.balance || 0;
+      return sum + balance;
+    }, 0);
   }
   
   getBudgetProgress(budget: any): number {
-    if (!budget.spending) return 0;
-    return (budget.spending.currentSpending / budget.amount) * 100;
+    if (!budget.spending || !budget.amount) return 0;
+    const currentSpending = budget.spending.currentSpending || 0;
+    const amount = budget.amount || 1; // Avoid division by zero
+    return (currentSpending / amount) * 100;
   }
   
   getProgressBarClass(percentage: number): string {

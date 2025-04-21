@@ -11,6 +11,7 @@ import { AuthService } from '../../../services/auth.service';
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
   loading = false;
+  demoLoading = false; // For demo button loading state
   returnUrl: string = '/';
   error: string = '';
   debug: boolean = false; // Can be enabled via query param
@@ -103,6 +104,41 @@ export class LoginComponent implements OnInit {
         console.error('Login error:', error);
         this.error = error.message || error.error?.message || 'Invalid credentials';
         this.loading = false;
+      }
+    });
+  }
+  
+  /**
+   * Handles the demo login when user clicks the "Try Demo" button.
+   * Uses the auth service's demoLogin method to authenticate with the backend.
+   */
+  tryDemoMode(): void {
+    this.demoLoading = true;
+    this.error = '';
+    
+    console.log('Attempting demo login');
+    
+    this.authService.demoLogin().subscribe({
+      next: (response) => {
+        console.log('Demo login successful');
+        
+        // Verify token was saved correctly
+        if (!localStorage.getItem('token')) {
+          console.error('Demo login response received but token not saved to localStorage');
+          this.error = 'Authentication error: Token not saved. Please try again.';
+          this.demoLoading = false;
+          return;
+        }
+        
+        // Short delay to let auth state propagate
+        setTimeout(() => {
+          this.router.navigate([this.returnUrl]);
+        }, 300);
+      },
+      error: error => {
+        console.error('Demo login error:', error);
+        this.error = error.message || 'Demo mode is only available when accessing from justjay.net';
+        this.demoLoading = false;
       }
     });
   }

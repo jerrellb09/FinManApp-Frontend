@@ -19,6 +19,7 @@ import { InsightService } from './services/insight.service';
 
 // HTTP Interceptor
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+// import { AuthInterceptor } from './core/interceptors/auth.interceptor'; // There are two interceptors, using the main one
 import { AppRoutingModule } from './app-routing.module';
 
 @NgModule({
