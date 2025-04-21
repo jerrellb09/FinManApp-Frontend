@@ -65,13 +65,19 @@ export class AppComponent implements OnInit {
       return;
     }
     
-    // Get the document referrer (where the user came from)
+    // Two ways to check for demo mode:
+    // 1. Get the document referrer (where the user came from)
     const referrer = document.referrer;
-    console.log('Checking referrer for demo mode:', referrer);
+    // 2. Check URL parameters for demo mode (allows direct linking to demo mode)
+    const urlParams = new URLSearchParams(window.location.search);
+    const demoMode = urlParams.get('demo') === 'true';
+    const fromJustJay = urlParams.get('source') === 'justjay.net';
     
-    // Check if coming from justjay.net
-    if (referrer && referrer.includes('justjay.net')) {
-      console.log('User coming from justjay.net - activating demo mode');
+    console.log('Checking demo mode triggers - referrer:', referrer, 'URL params:', {demoMode, fromJustJay});
+    
+    // Activate demo mode if coming from justjay.net OR if URL params explicitly request it
+    if ((referrer && referrer.includes('justjay.net')) || (demoMode && fromJustJay)) {
+      console.log('Activating demo mode');
       
       // Mark that we've attempted demo login in this session
       sessionStorage.setItem('demoLoginAttempted', 'true');

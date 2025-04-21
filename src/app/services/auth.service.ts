@@ -74,12 +74,12 @@ export class AuthService {
   demoLogin(): Observable<User> {
     console.log('Attempting demo login...');
     
-    return this.http.get<any>(`${this.apiUrl}/auth/demo-login`, {
+    // Use a query parameter instead of trying to set the Referer header
+    // The browser security model prevents us from setting the Referer header directly
+    return this.http.get<any>(`${this.apiUrl}/auth/demo-login?demo=true&source=justjay.net`, {
       headers: {
         // Add a custom header to indicate this is a demo login request
-        'X-Demo-Request': 'true',
-        // Set Referer header to justjay.net (this is required by the backend)
-        'Referer': 'https://justjay.net'
+        'X-Demo-Request': 'true'
       }
     }).pipe(
       map(response => {
